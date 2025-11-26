@@ -3,6 +3,7 @@ package com.ericxmagno.expense_tracker_api.controller;
 import com.ericxmagno.expense_tracker_api.dto.ExpenseRequest;
 import com.ericxmagno.expense_tracker_api.dto.ExpenseResponse;
 import com.ericxmagno.expense_tracker_api.dto.SummaryResponse;
+import com.ericxmagno.expense_tracker_api.exception.ErrorDetails;
 import com.ericxmagno.expense_tracker_api.model.Category;
 import com.ericxmagno.expense_tracker_api.model.Expenses;
 import com.ericxmagno.expense_tracker_api.service.ExpenseService;
@@ -45,7 +46,10 @@ public class ExpenseController {
         responseCode = "201",
         description = "Expense created",
         content = @Content(schema = @Schema(implementation = ExpenseResponse.class))),
-    @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = @Content(schema = @Schema(implementation = ErrorDetails.class)))
   })
   @PostMapping
   public ResponseEntity<ExpenseResponse> addExpense(@Valid @RequestBody ExpenseRequest request) {
@@ -82,25 +86,61 @@ public class ExpenseController {
         MapperUtils.createResponse(service.listExpenses(pageable, category, start, end)));
   }
 
+  @Operation(summary = "Get an expense by ID")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Expense found"),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Expense not found",
+        content = @Content(schema = @Schema(implementation = ErrorDetails.class)))
+  })
   @GetMapping("/{id}")
-  public ResponseEntity<ExpenseResponse> getExpenseById(@PathVariable Long id) {
+  public ResponseEntity<ExpenseResponse> getExpenseById(
+      @Parameter(description = "Expense ID") @PathVariable Long id) {
     return ResponseEntity.ok(MapperUtils.createResponse(service.getExpenseById(id)));
   }
 
+  @Operation(summary = "Update an existing expense")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Expense updated"),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Expense not found",
+        content = @Content(schema = @Schema(implementation = ErrorDetails.class)))
+  })
   @PutMapping("/{id}")
   public ResponseEntity<ExpenseResponse> updateExpense(
-      @PathVariable Long id, @Valid @RequestBody ExpenseRequest request) {
+      @Parameter(description = "Expense ID") @PathVariable Long id,
+      @Valid @RequestBody ExpenseRequest request) {
     return ResponseEntity.ok(MapperUtils.createResponse(service.updateExpense(id, request)));
   }
 
+  @Operation(summary = "Delete an expense")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Expense not found",
+        content = @Content(schema = @Schema(implementation = ErrorDetails.class)))
+  })
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteExpense(@PathVariable Long id) {
+  public ResponseEntity<Void> deleteExpense(
+      @Parameter(description = "Expense ID") @PathVariable Long id) {
     service.deleteExpense(id);
     return ResponseEntity.noContent().build();
   }
 
+  @Operation(summary = "Get monthly summary (totals per category)")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Summary retrieved"),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Invalid month format",
+        content = @Content(schema = @Schema(implementation = ErrorDetails.class)))
+  })
   @GetMapping("/summary")
-  public ResponseEntity<SummaryResponse> getSummary(@RequestParam String month) {
+  public ResponseEntity<SummaryResponse> getSummary(
+      @Parameter(description = "Month format: yyyy-MM (e.g. 2025-01)") @RequestParam String month) {
 
     return ResponseEntity.ok(service.monthlySummary(month));
   }
