@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
 @SpringBootTest
-class MapperUtilTest {
+class MapperUtilsTest {
   @Test
   void testCreateResponseFromEntity() {
     Expenses expense = new Expenses();
@@ -20,7 +20,7 @@ class MapperUtilTest {
     expense.setTitle("Lunch");
     expense.setAmount(BigDecimal.TEN);
 
-    ExpenseResponse response = MapperUtil.createResponse(expense);
+    ExpenseResponse response = MapperUtils.createResponse(expense);
 
     assertEquals(1L, response.getId());
     assertEquals("Lunch", response.getTitle());
@@ -33,7 +33,7 @@ class MapperUtilTest {
     expense.setId(1L);
     Page<Expenses> page = new PageImpl<>(List.of(expense));
 
-    Page<ExpenseResponse> responsePage = MapperUtil.createResponse(page);
+    Page<ExpenseResponse> responsePage = MapperUtils.createResponse(page);
 
     assertEquals(1, responsePage.getTotalElements());
     assertEquals(1L, responsePage.getContent().getFirst().getId());

@@ -4,9 +4,9 @@ import com.ericxmagno.expense_tracker_api.dto.ExpenseResponse;
 import com.ericxmagno.expense_tracker_api.model.Expenses;
 import org.springframework.data.domain.Page;
 
-public final class MapperUtil {
+public final class MapperUtils {
 
-  private MapperUtil() {
+  private MapperUtils() {
     // prevent instantiation
   }
 
@@ -22,6 +22,6 @@ public final class MapperUtil {
   }
 
   public static Page<ExpenseResponse> createResponse(Page<Expenses> expense) {
-    return expense.map(MapperUtil::createResponse);
+    return expense.map(MapperUtils::createResponse);
   }
 }
