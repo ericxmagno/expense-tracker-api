@@ -1,0 +1,68 @@
+name: CI/CD Expense Tracker
+
+on:
+  push:
+    branches:
+      - main
+      - deploy
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: expense_tracker
+          MYSQL_USER: appuser
+          MYSQL_PASSWORD: apppassword
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -prootpassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Use Maven + Java 21 (Temurin)
+      - name: Set up Maven & JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Wait for MySQL
+        run: |
+          until nc -z localhost 3306; do
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
+
+      - name: Build & Test
+        run: mvn clean test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/expense_tracker?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+          SPRING_DATASOURCE_USERNAME: appuser
+          SPRING_DATASOURCE_PASSWORD: apppassword
+
+      - name: Build Docker image
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/expense-tracker:latest .
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Docker image to GHCR
+        run: docker push ghcr.io/${{ github.repository_owner }}/expense-tracker:latest
