@@ -1,5 +1,18 @@
 package com.ericxmagno.expense_tracker_api.service.impl;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
 import com.ericxmagno.expense_tracker_api.dto.ExpenseRequest;
 import com.ericxmagno.expense_tracker_api.dto.SummaryResponse;
 import com.ericxmagno.expense_tracker_api.exception.ExpenseNotFoundException;
@@ -8,19 +21,9 @@ import com.ericxmagno.expense_tracker_api.model.Category;
 import com.ericxmagno.expense_tracker_api.model.Expenses;
 import com.ericxmagno.expense_tracker_api.repository.ExpenseRepository;
 import com.ericxmagno.expense_tracker_api.service.ExpenseService;
+
 import jakarta.transaction.Transactional;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -56,8 +59,10 @@ public class ExpenseServiceImpl implements ExpenseService {
   @Override
   public Page<Expenses> listExpenses(
       Pageable pageable, Category category, LocalDate start, LocalDate end) {
-    if (category != null) return repository.findByCategory(category, pageable);
-    if (start != null && end != null) return repository.findByDateBetween(start, end, pageable);
+    if (category != null)
+      return repository.findByCategory(category, pageable);
+    if (start != null && end != null)
+      return repository.findByDateBetween(start, end, pageable);
     return repository.findAll(pageable);
   }
 
@@ -97,9 +102,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     List<Expenses> expenseList = repository.findByDateBetween(start, end);
 
-    BigDecimal total =
-        expenseList.stream().map(Expenses::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal total = expenseList.stream().map(Expenses::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    return SummaryResponse.builder().month(month).totalSpent(total).build();
+    return SummaryResponse.builder().month(month).totalSpent(total).count(Long.valueOf(expenseList.size())).build();
   }
 }
