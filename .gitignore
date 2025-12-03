@@ -18,8 +18,8 @@
 # =============================
 # Build / output directories
 # =============================
-/target/
-/out/
+*/target/
+*/out/
 
 # =============================
 # Logs
@@ -39,7 +39,7 @@ Thumbs.db
 log/
 dependency-reduced-pom.xml
 buildNumber.properties
-.mvn/timing.properties
+backend/.mvn/timing.properties
 
 # Gradle
 .gradle/

@@ -1,6 +1,12 @@
 spring:
   application:
     name: expense-tracker-api
+  web:
+    resources:
+      static-locations: classpath:/static/
+  mvc:
+    view:
+      index: /index.html
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/expense_tracker?useSSL=false&serverTimezone=UTC}
